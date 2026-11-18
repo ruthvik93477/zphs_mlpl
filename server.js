@@ -709,7 +709,7 @@ mongoose.connect(MONGODB_URI, {
   serverSelectionTimeoutMS: 4000
 }).then(() => {
   isMongoConnected = true;
-  console.log(`[MongoDB] Connected successfully to: ${MONGODB_URI}`);
+  //console.log(`[MongoDB] Connected successfully to: ${MONGODB_URI}`);
   initializeData();
 }).catch((err) => {
   isMongoConnected = false;
@@ -1540,7 +1540,7 @@ app.use((req, res) => {
 
 // Start Express Server
 app.listen(PORT, () => {
-  console.log(`http://localhost:${PORT}`);
+  console.log(`Service running`);
 });
 
 module.exports = app;
