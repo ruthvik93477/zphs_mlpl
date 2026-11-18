@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZPHS MLPL — Student Marks & Ranking Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Local SheetJS library for high-speed offline Excel export -->
+  <script src="vendor/xlsx.full.min.js"></script>
+</head>
+<body>
+
+  <!-- Top App Bar -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">🎓</div>
+        <div class="brand-text">
+          <div class="school-title">ZPHS MLPL HIGH SCHOOL</div>
+          <div class="portal-subtitle">Student Marks Evaluation & Ranking System</div>
+        </div>
+      </div>
+
+      <div class="header-badges">
+        <div class="stat-pill">
+          <span class="pill-dot"></span>
+          <span class="pill-label">Students:</span>
+          <strong>69</strong>
+        </div>
+        <div class="stat-pill">
+          <span class="pill-label">Subjects:</span>
+          <strong>7</strong>
+        </div>
+        <div class="stat-pill">
+          <span class="pill-label">Tests:</span>
+          <strong>30</strong>
+        </div>
+        <div id="db-status-badge" class="stat-pill db-pill">
+          <span class="db-dot"></span>
+          <span id="db-status-text">Checking DB...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="main-nav">
+      <div class="nav-container">
+        <button class="nav-btn active" data-tab="tab-upload-marks">
+          <span class="nav-icon">📤</span> Upload Marks (Class)
+        </button>
+        <button class="nav-btn" data-tab="tab-enter-marks">
+          <span class="nav-icon">✏️</span> Single Student Entry
+        </button>
+        <button class="nav-btn" data-tab="tab-rankings">
+          <span class="nav-icon">🏆</span> Rankings & Reports
+        </button>
+        <button class="nav-btn" data-tab="tab-parent-portal">
+          <span class="nav-icon">👨‍👩‍👦</span> Parent / Student View
+        </button>
+        <button class="nav-btn" data-tab="tab-manage">
+          <span class="nav-icon">⚙️</span> Manage / Edit Marks
+        </button>
+        <button class="nav-btn" data-tab="tab-students">
+          <span class="nav-icon">👥</span> Students Directory (69)
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- ================= TAB: UPLOAD MARKS (CLASS / BATCH ENTRY) ================= -->
+    <section id="tab-upload-marks" class="tab-pane active">
+      <div class="content-header">
+        <div>
+          <h2>📤 Upload Examination Marks (Class-Wise)</h2>
+          <p class="subtitle">Filter by Test, Subject, and Group to fill marks for all students at once with automatic scaling to 100</p>
+        </div>
+        <div class="quick-info-box">
+          <span class="info-icon">⚡</span>
+          <span>Scaling rule: <code>19 / 20 = 95 / 100</code> counting marks saved</span>
+        </div>
+      </div>
+
+      <!-- Filter Controls Card -->
+      <div class="card filter-bar upload-filter-card">
+        <div class="upload-filter-grid">
+          <!-- 1. Test Selector -->
+          <div class="filter-field">
+            <label for="upload-test-select"><strong>1. Test Name:</strong></label>
+            <select id="upload-test-select" class="form-control select-compact">
+              <!-- Populated Test-1 to Test-30 -->
+            </select>
+          </div>
+
+          <!-- 2. Subject Selector -->
+          <div class="filter-field">
+            <label for="upload-subject-select"><strong>2. Subject:</strong></label>
+            <select id="upload-subject-select" class="form-control select-compact">
+              <option value="Telugu">Telugu</option>
+              <option value="Hindi">Hindi</option>
+              <option value="English">English</option>
+              <option value="Maths">Maths</option>
+              <option value="Physics">Physics</option>
+              <option value="Biology">Biology</option>
+              <option value="Social">Social</option>
+            </select>
+          </div>
+
+          <!-- 3. Exam Conducted For (Max Marks) -->
+          <div class="filter-field">
+            <label><strong>3. Exam Conducted For:</strong></label>
+            <div class="upload-pill-selector">
+              <label class="pill-radio-sm">
+                <input type="radio" name="uploadGlobalMax" value="20" checked>
+                <span class="pill-btn-sm">20 M</span>
+              </label>
+              <label class="pill-radio-sm">
+                <input type="radio" name="uploadGlobalMax" value="25">
+                <span class="pill-btn-sm">25 M</span>
+              </label>
+              <label class="pill-radio-sm">
+                <input type="radio" name="uploadGlobalMax" value="50">
+                <span class="pill-btn-sm">50 M</span>
+              </label>
+              <label class="pill-radio-sm">
+                <input type="radio" name="uploadGlobalMax" value="100">
+                <span class="pill-btn-sm">100 M</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Group Selector Tabs & Save All Button -->
+        <div class="upload-group-tabs-row">
+          <div class="group-filter-buttons">
+            <span class="group-filter-label">Filter Group:</span>
+            <button type="button" class="upload-grp-btn active" data-group="Group-X">
+              <span class="group-dot dot-x"></span> Group-X (11)
+            </button>
+            <button type="button" class="upload-grp-btn" data-group="Group-Y">
+              <span class="group-dot dot-y"></span> Group-Y (18)
+            </button>
+            <button type="button" class="upload-grp-btn" data-group="Group-Z">
+              <span class="group-dot dot-z"></span> Group-Z (40)
+            </button>
+            <button type="button" class="upload-grp-btn" data-group="all">
+              <span class="group-dot dot-all"></span> All Students (69)
+            </button>
+          </div>
+
+          <div class="upload-action-buttons">
+            <button id="save-all-upload-btn" class="btn btn-success btn-lg">
+              💾 Save All Marks (<span id="upload-pending-count">0</span>)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Search & Batch Statistics Bar -->
+      <div class="upload-stats-bar">
+        <div class="search-input-wrapper upload-search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input 
+            type="text" 
+            id="upload-student-search" 
+            class="form-control" 
+            placeholder="Quick search student name or phone..."
+          />
+        </div>
+        <div class="upload-status-summary">
+          <span id="upload-summary-text">Showing 11 students of Group-X</span>
+          <span class="badge" id="upload-entered-badge" style="background:#dcfce7; color:#166534; font-size: 0.85rem; padding: 0.35rem 0.65rem;">0 / 11 Entered</span>
+        </div>
+      </div>
+
+      <!-- Marks Entry Table / Cards Container -->
+      <div class="card table-card upload-container-card">
+        <!-- Desktop Table View -->
+        <div class="table-responsive desktop-upload-view">
+          <table class="data-table" id="upload-marks-table">
+            <thead>
+              <tr>
+                <th style="width: 60px;">Roll</th>
+                <th>Student</th>
+                <th>Group & Sec</th>
+                <th>Phone Number</th>
+                <th style="width: 130px;">Exam Max Marks</th>
+                <th style="width: 160px;">Marks Scored</th>
+                <th style="width: 170px;" id="upload-counting-marks-th">Counting Marks (/100)</th>
+                <th style="width: 100px;">Status</th>
+                <th style="width: 90px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="upload-table-body">
+              <!-- Dynamically rendered rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Card List View (Visible on screens <= 768px) -->
+        <div class="mobile-upload-view" id="upload-mobile-cards">
+          <!-- Dynamically populated mobile cards -->
+        </div>
+      </div>
+
+      <!-- Mobile Sticky Floating Save Bar -->
+      <div class="mobile-sticky-save-bar" id="mobile-sticky-save-bar">
+        <div class="mobile-save-info">
+          <strong id="mobile-save-count-text">0 / 11 Filled</strong>
+          <span id="mobile-save-subtext">Ready to save</span>
+        </div>
+        <button id="mobile-save-all-btn" class="btn btn-success">
+          💾 Save All Marks
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= TAB 1: ENTER MARKS ================= -->
+    <section id="tab-enter-marks" class="tab-pane">
+      <div class="content-header">
+        <div>
+          <h2>Enter Student Examination Marks</h2>
+          <p class="subtitle">Enter test marks with automatic scaling to 100 counting marks</p>
+        </div>
+        <div class="quick-info-box">
+          <span class="info-icon">ℹ️</span>
+          <span>Scaling rule: <code>Counting Marks = (Scored / Max) × 100</code></span>
+        </div>
+      </div>
+
+      <div class="entry-grid">
+        <!-- Form Card -->
+        <div class="card form-card">
+          <form id="marks-entry-form" autocomplete="off">
+            
+            <!-- 1. Student Name (Searchable Filter Dropdown with 69 options) -->
+            <div class="form-group">
+              <label for="student-search-input">
+                <span class="field-number">1</span> Student Name
+                <span class="field-hint">(Filter across 69 students by letters in any order)</span>
+              </label>
+              <div class="searchable-combobox">
+                <input 
+                  type="text" 
+                  id="student-search-input" 
+                  class="form-control" 
+                  placeholder="Type to filter e.g. 'x 5', 'y 12', 'z 34', '98480'..." 
+                  autocomplete="off"
+                  required
+                />
+                <button type="button" id="toggle-student-dropdown" class="combobox-toggle" title="Toggle student list">▼</button>
+                <div id="student-dropdown-list" class="combobox-options-list">
+                  <!-- Populated dynamically with 69 students -->
+                </div>
+              </div>
+              <input type="hidden" id="selected-student-id" required />
+              
+              <!-- Student preview badge -->
+              <div id="selected-student-badge" class="student-preview-badge hidden">
+                <div class="preview-avatar">👤</div>
+                <div class="preview-details">
+                  <div class="preview-name"><strong id="preview-name-text">X-1</strong></div>
+                  <div class="preview-meta">
+                    <span id="preview-group-badge" class="badge">Group-X</span>
+                    <span id="preview-section-badge" class="badge">Section A</span>
+                    <span class="preview-phone">📞 <span id="preview-phone-text">9848011001</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Test Name (Dropdown up to 30 tests) -->
+            <div class="form-group">
+              <label for="test-select">
+                <span class="field-number">2</span> Test Name
+                <span class="field-hint">(30 Tests available)</span>
+              </label>
+              <select id="test-select" class="form-control" required>
+                <!-- Populated Test-1 to Test-30 -->
+              </select>
+            </div>
+
+            <!-- 3. Subject (7 Subjects Dropdown) -->
+            <div class="form-group">
+              <label for="subject-select">
+                <span class="field-number">3</span> Subject
+                <span class="field-hint">(7 Core Subjects)</span>
+              </label>
+              <select id="subject-select" class="form-control" required>
+                <option value="Telugu">Telugu</option>
+                <option value="Hindi">Hindi</option>
+                <option value="English">English</option>
+                <option value="Maths">Maths</option>
+                <option value="Physics">Physics</option>
+                <option value="Biology">Biology</option>
+                <option value="Social">Social</option>
+              </select>
+            </div>
+
+            <!-- 4. Max Marks for Exam Conducted (4 Options: 20, 25, 50, 100) -->
+            <div class="form-group">
+              <label>
+                <span class="field-number">4</span> Max Marks for which Exam was Conducted
+                <span class="field-hint">(4 official standard options)</span>
+              </label>
+              <div class="pill-selector">
+                <label class="pill-radio">
+                  <input type="radio" name="maxMarks" value="20" checked>
+                  <span class="pill-label-btn">20 Marks</span>
+                </label>
+                <label class="pill-radio">
+                  <input type="radio" name="maxMarks" value="25">
+                  <span class="pill-label-btn">25 Marks</span>
+                </label>
+                <label class="pill-radio">
+                  <input type="radio" name="maxMarks" value="50">
+                  <span class="pill-label-btn">50 Marks</span>
+                </label>
+                <label class="pill-radio">
+                  <input type="radio" name="maxMarks" value="100">
+                  <span class="pill-label-btn">100 Marks</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 5. Marks Student Scored -->
+            <div class="form-group">
+              <label for="raw-marks-input">
+                <span class="field-number">5</span> Marks Student Scored
+                <span class="field-hint">(Numeric score out of selected max marks)</span>
+              </label>
+              <input 
+                type="number" 
+                id="raw-marks-input" 
+                class="form-control marks-input" 
+                placeholder="e.g. 19" 
+                step="0.5" 
+                min="0" 
+                max="100" 
+                required 
+              />
+            </div>
+
+            <!-- Real-time Automatic Calculation Preview to 100 -->
+            <div class="calculation-card">
+              <div class="calc-header">
+                <span class="calc-icon">⚡</span>
+                <span class="calc-title" id="calc-title-text">Live Scaled Score Calculation</span>
+              </div>
+              <div class="calc-body">
+                <div class="calc-formula">
+                  Formula: (<span id="calc-scored-val">19</span> ÷ <span id="calc-max-val">20</span>) × <span id="calc-mult-val">100</span>
+                </div>
+                <div class="calc-result">
+                  <span class="calc-big-score" id="calc-scaled-val">95.00</span>
+                  <span class="calc-score-suffix" id="calc-score-suffix">/ 100 Marks</span>
+                </div>
+              </div>
+              <div class="score-progress-bar">
+                <div id="calc-progress-fill" class="progress-fill" style="width: 95%;"></div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" id="save-marks-btn" class="btn btn-primary">
+                💾 Save / Update Marks
+              </button>
+              <button type="reset" id="reset-form-btn" class="btn btn-secondary">
+                🔄 Clear
+              </button>
+            </div>
+
+            <div id="entry-alert-box" class="alert-box hidden"></div>
+          </form>
+        </div>
+
+        <!-- Student Test Summary Card -->
+        <div class="card summary-card">
+          <div class="card-header">
+            <h3>Student Subject Progress</h3>
+            <span id="summary-test-tag" class="badge">Test-1</span>
+          </div>
+          <div id="student-summary-content" class="student-summary-placeholder">
+            <div class="placeholder-icon">📋</div>
+            <p>Select a student and test to see all their 7 subject marks in that test.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: RANKINGS & REPORTS ================= -->
+    <section id="tab-rankings" class="tab-pane">
+      <div class="content-header">
+        <div>
+          <h2>Academic Rankings & Marks Sheets</h2>
+          <p class="subtitle">Rankings calculated from 7 subject scores (Top Marks First)</p>
+        </div>
+        <div class="header-controls">
+          <div class="control-group">
+            <label for="rankings-test-select">Select Test:</label>
+            <select id="rankings-test-select" class="form-control select-compact">
+              <!-- Populated Test-1 to Test-30 -->
+            </select>
+          </div>
+          <button id="download-all-groups-excel-btn" class="btn btn-primary" title="Download marks & ranks of all groups in a single file">
+            <span class="btn-icon">📑</span> Download All Groups (Single File)
+          </button>
+          <button id="download-excel-btn" class="btn btn-success" title="Download current group view">
+            <span class="btn-icon">📊</span> Download Current View
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Ways of Displaying Rankings -->
+      <div class="ranking-tabs-bar">
+        <button class="rank-tab-btn active" data-group="Group-X">
+          <span class="group-dot dot-x"></span>
+          <strong>1) Group-X</strong>
+          <span class="count-badge">11 Students</span>
+        </button>
+        <button class="rank-tab-btn" data-group="Group-Y">
+          <span class="group-dot dot-y"></span>
+          <strong>2) Group-Y</strong>
+          <span class="count-badge">18 Students</span>
+        </button>
+        <button class="rank-tab-btn" data-group="Group-Z">
+          <span class="group-dot dot-z"></span>
+          <strong>3) Group-Z</strong>
+          <span class="count-badge">40 Students</span>
+        </button>
+        <button class="rank-tab-btn" data-group="all">
+          <span class="group-dot dot-all"></span>
+          <strong>4) All Students (X, Y, Z)</strong>
+          <span class="count-badge">69 Students</span>
+        </button>
+      </div>
+
+      <!-- Filters & Sorting Controls -->
+      <div class="card filter-bar">
+        <div class="filter-left">
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              id="rank-search-input" 
+              class="form-control" 
+              placeholder="Search by student name or phone number..."
+            />
+          </div>
+          <div class="results-count" id="rankings-results-count">Showing 11 students</div>
+        </div>
+
+        <div class="filter-right">
+          <label for="rank-sort-select">Sort Order:</label>
+          <select id="rank-sort-select" class="form-control select-compact">
+            <option value="rank-asc">Rank: 1st to Last (Top Marks First)</option>
+            <option value="rank-desc">Rank: Last to 1st (Ascending Score)</option>
+            <option value="name-asc">Student Name: Ascending (A-Z)</option>
+            <option value="name-desc">Student Name: Descending (Z-A)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Rankings Table Card -->
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="data-table" id="rankings-table">
+            <thead>
+              <tr>
+                <th class="th-rank">Rank</th>
+                <th>Student</th>
+                <th>Group</th>
+                <th>Sec</th>
+                <th>Phone Number</th>
+                <th>Telugu</th>
+                <th>Hindi</th>
+                <th>English</th>
+                <th>Maths</th>
+                <th>Physics (/50)</th>
+                <th>Biology (/50)</th>
+                <th>Social</th>
+                <th class="th-total">Total (600)</th>
+                <th class="th-percent">%</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="rankings-table-body">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB: PARENT / STUDENT PROGRESS VIEW ================= -->
+    <section id="tab-parent-portal" class="tab-pane">
+      <div class="content-header">
+        <div>
+          <h2>👨‍👩‍👦 Student Academic Progress — Parent Report Card</h2>
+          <p class="subtitle">Complete multi-test performance evaluation, subject-wise marks, ranks, and printable progress cards</p>
+        </div>
+        <div class="header-controls">
+          <button id="parent-print-report-btn" class="btn btn-primary" title="Print or save official progress report as PDF" disabled>
+            <span class="btn-icon">🖨️</span> Print / Save PDF
+          </button>
+          <button id="parent-download-excel-btn" class="btn btn-success" title="Download this student's multi-test marks report in Excel" disabled>
+            <span class="btn-icon">📥</span> Student Excel
+          </button>
+          <button id="parent-whatsapp-btn" class="btn btn-secondary" title="Copy parent update summary for WhatsApp" disabled>
+            <span class="btn-icon">📱</span> Copy WhatsApp Msg
+          </button>
+        </div>
+      </div>
+
+      <!-- Student Selection Bar -->
+      <div class="card filter-bar parent-picker-card">
+        <div class="parent-picker-grid">
+          <!-- Student Selector Dropdown -->
+          <div class="picker-col select-col">
+            <label for="parent-student-select"><strong>1. Select Student (69 Students):</strong></label>
+            <select id="parent-student-select" class="form-control">
+              <option value="">-- Choose a Student --</option>
+              <!-- Populated dynamically with optgroups: Group-X, Group-Y, Group-Z -->
+            </select>
+          </div>
+
+          <!-- Quick Search Filter -->
+          <div class="picker-col search-col">
+            <label for="parent-student-search"><strong>2. Or Search by Name, Roll, or Phone:</strong></label>
+            <div class="search-input-wrapper">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="parent-student-search" class="form-control" placeholder="Search student name, roll number, phone..." autocomplete="off">
+            </div>
+            <div id="parent-search-results" class="search-dropdown-menu hidden">
+              <!-- Autocomplete dropdown suggestions -->
+            </div>
+          </div>
+
+          <!-- Group Quick Filters -->
+          <div class="picker-col group-col">
+            <label><strong>Quick Group Filter:</strong></label>
+            <div class="group-filter-buttons">
+              <button type="button" class="parent-grp-filter active" data-group="all">All (69)</button>
+              <button type="button" class="parent-grp-filter" data-group="Group-X">Group-X (11)</button>
+              <button type="button" class="parent-grp-filter" data-group="Group-Y">Group-Y (18)</button>
+              <button type="button" class="parent-grp-filter" data-group="Group-Z">Group-Z (40)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State View -->
+      <div id="parent-empty-state" class="card parent-empty-placeholder">
+        <div class="empty-state-content">
+          <div class="empty-icon">🎓</div>
+          <h3>Select a Student to View Parent Progress Report</h3>
+          <p>Choose any student from the dropdown or search box above to view their subject-wise marks across all 30 tests, total scores, percentage, group rank, and overall rank.</p>
+        </div>
+      </div>
+
+      <!-- Active Student Report Card Container -->
+      <div id="parent-report-container" class="parent-report-view hidden">
+        <!-- Student Identity & Overall Academic Summary Header -->
+        <div class="card student-parent-header-card">
+          <div class="parent-header-main">
+            <div class="parent-avatar-circle" id="parent-student-avatar">👤</div>
+            <div class="parent-student-details">
+              <div class="student-name-row">
+                <h3 id="parent-student-name">STUDENT NAME</h3>
+                <span class="badge" id="parent-group-badge">Group-X</span>
+                <span class="badge" id="parent-section-badge">Sec A</span>
+              </div>
+              <div class="student-meta-row">
+                <span class="meta-item"><strong>Roll No:</strong> <span id="parent-roll-number">#1</span></span>
+                <span class="meta-item"><strong>Student ID:</strong> <span id="parent-student-id">X-1</span></span>
+                <span class="meta-item"><strong>Parent Phone:</strong> <span id="parent-phone-number">📞 1234567890</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Performance KPI Metric Cards -->
+          <div class="parent-kpi-grid">
+            <div class="parent-kpi-card kpi-tests">
+              <div class="kpi-icon">📝</div>
+              <div class="kpi-body">
+                <span class="kpi-label">Tests Attempted</span>
+                <strong class="kpi-val" id="kpi-tests-attempted">0 / 30</strong>
+              </div>
+            </div>
+            <div class="parent-kpi-card kpi-avg">
+              <div class="kpi-icon">📈</div>
+              <div class="kpi-body">
+                <span class="kpi-label">Overall Average</span>
+                <strong class="kpi-val" id="kpi-cumulative-avg">0.0%</strong>
+              </div>
+            </div>
+            <div class="parent-kpi-card kpi-best-test">
+              <div class="kpi-icon">🏆</div>
+              <div class="kpi-body">
+                <span class="kpi-label">Best Test</span>
+                <strong class="kpi-val" id="kpi-best-test">—</strong>
+              </div>
+            </div>
+            <div class="parent-kpi-card kpi-best-sub">
+              <div class="kpi-icon">⭐</div>
+              <div class="kpi-body">
+                <span class="kpi-label">Strongest Subject</span>
+                <strong class="kpi-val" id="kpi-best-sub">—</strong>
+              </div>
+            </div>
+            <div class="parent-kpi-card kpi-weak-sub">
+              <div class="kpi-icon">🎯</div>
+              <div class="kpi-body">
+                <span class="kpi-label">Focus Area</span>
+                <strong class="kpi-val" id="kpi-weak-sub">—</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subject Performance Breakdown (Average in 7 Core Subjects) -->
+        <div class="card parent-subject-averages-card">
+          <div class="card-inner-header">
+            <h4>📊 Subject-Wise Performance Breakdown (Average /100)</h4>
+            <span class="help-text">Cumulative average across all conducted tests</span>
+          </div>
+          <div class="subject-bars-grid" id="parent-subject-bars">
+            <!-- Populated dynamically with 7 subject progress bars -->
+          </div>
+        </div>
+
+        <!-- Comprehensive All-Tests Evaluation Table -->
+        <div class="card parent-table-card">
+          <div class="table-toolbar">
+            <div class="toolbar-title">
+              <h4>📋 All Tests Performance Matrix</h4>
+              <p>Subject scores scaled (Physics &amp; Biology /50, others /100) | Maximum Total = 600 Marks</p>
+            </div>
+            <div class="toolbar-actions">
+              <label class="toggle-control">
+                <input type="checkbox" id="parent-toggle-all-tests">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label" id="toggle-tests-label">Show Conducted Tests Only</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table parent-report-table">
+              <thead>
+                <tr>
+                  <th style="width: 100px;">Test</th>
+                  <th>Telugu</th>
+                  <th>Hindi</th>
+                  <th>English</th>
+                  <th>Maths</th>
+                  <th>Physics (/50)</th>
+                  <th>Biology (/50)</th>
+                  <th>Social</th>
+                  <th class="th-total">Total (600)</th>
+                  <th class="th-percent">%</th>
+                  <th>Group Rank</th>
+                  <th>School Rank</th>
+                  <th>Grade</th>
+                </tr>
+              </thead>
+              <tbody id="parent-report-table-body">
+                <!-- Dynamically populated with all tests -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Official Printable Report Card Component (Hidden on screen, Visible on Print) -->
+        <div id="official-printable-report" class="official-report-card-print">
+          <div class="print-school-header">
+            <div class="print-emblem">🏛️</div>
+            <div class="print-school-info">
+              <h1>ZILLA PARISHAD HIGH SCHOOL (ZPHS MLPL)</h1>
+              <p class="print-sub">High School Academic Progress & Performance Evaluation Report</p>
+              <p class="print-addr">Academic Session 2026-27 | Secondary Education Department</p>
+            </div>
+          </div>
+
+          <div class="print-student-info-box">
+            <div class="print-info-grid">
+              <div><strong>Student Name:</strong> <span id="print-student-name">—</span></div>
+              <div><strong>Student ID:</strong> <span id="print-student-id">—</span></div>
+              <div><strong>Roll Number:</strong> <span id="print-roll-number">—</span></div>
+              <div><strong>Academic Group:</strong> <span id="print-group">—</span></div>
+              <div><strong>Section:</strong> <span id="print-section">—</span></div>
+              <div><strong>Parent Contact:</strong> <span id="print-phone">—</span></div>
+              <div><strong>Cumulative Average:</strong> <span id="print-cumulative-avg">—</span></div>
+              <div><strong>Report Date:</strong> <span id="print-generated-date">—</span></div>
+            </div>
+          </div>
+
+          <div class="print-table-wrapper">
+            <table class="print-marks-table">
+              <thead>
+                <tr>
+                  <th>Test Name</th>
+                  <th>Telugu (/100)</th>
+                  <th>Hindi (/100)</th>
+                  <th>English (/100)</th>
+                  <th>Maths (/100)</th>
+                  <th>Physics (/50)</th>
+                  <th>Biology (/50)</th>
+                  <th>Social (/100)</th>
+                  <th>Total (/600)</th>
+                  <th>%</th>
+                  <th>Group Rank</th>
+                  <th>School Rank</th>
+                  <th>Grade</th>
+                </tr>
+              </thead>
+              <tbody id="print-marks-table-body">
+                <!-- Populated on print -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="print-grading-scale">
+            <strong>Grading Scale:</strong>
+            <span>A+ (≥90% Outstanding)</span> |
+            <span>A (75-89% Distinction)</span> |
+            <span>B (60-74% First Class)</span> |
+            <span>C (50-59% Second Class)</span> |
+            <span>D (&lt;50% Needs Improvement)</span>
+          </div>
+
+          <div class="print-signatures-row">
+            <div class="sig-block">
+              <div class="sig-line"></div>
+              <span>Class Teacher</span>
+            </div>
+            <div class="sig-block">
+              <div class="sig-line"></div>
+              <span>Headmaster / Principal</span>
+            </div>
+            <div class="sig-block">
+              <div class="sig-line"></div>
+              <span>Parent / Guardian</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: MANAGE / EDIT MARKS ================= -->
+    <section id="tab-manage" class="tab-pane">
+      <div class="content-header">
+        <div>
+          <h2>Manage & Edit Student Marks</h2>
+          <p class="subtitle">Modify or remove individual student test scores with real-time recalculation</p>
+        </div>
+        <div class="header-controls">
+          <button id="reset-sample-btn" class="btn btn-secondary">
+            ⚡ Reset Test-1 Sample Data
+          </button>
+        </div>
+      </div>
+
+      <div class="card filter-bar">
+        <div class="filter-group-inline">
+          <label for="manage-test-select">Filter by Test:</label>
+          <select id="manage-test-select" class="form-control select-compact">
+            <option value="">All Tests</option>
+            <!-- Test-1 to Test-30 -->
+          </select>
+        </div>
+
+        <div class="filter-group-inline">
+          <label for="manage-student-select">Filter by Student:</label>
+          <select id="manage-student-select" class="form-control select-compact">
+            <option value="">All 69 Students</option>
+            <!-- 69 Students -->
+          </select>
+        </div>
+
+        <div class="search-input-wrapper">
+          <span class="search-icon">🔍</span>
+          <input 
+            type="text" 
+            id="manage-search-input" 
+            class="form-control" 
+            placeholder="Search records by student, subject, phone..."
+          />
+        </div>
+      </div>
+
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="data-table" id="manage-marks-table">
+            <thead>
+              <tr>
+                <th>Test</th>
+                <th>Student</th>
+                <th>Group</th>
+                <th>Sec</th>
+                <th>Phone Number</th>
+                <th>Subject</th>
+                <th>Raw Score</th>
+                <th>Max Marks</th>
+                <th>Counting Marks (Scaled)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="manage-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: STUDENTS DIRECTORY ================= -->
+    <section id="tab-students" class="tab-pane">
+      <div class="content-header">
+        <div>
+          <h2>Master Students Directory (69 Students)</h2>
+          <p class="subtitle">Section A & B students divided across Group-X (11), Group-Y (18), and Group-Z (40)</p>
+        </div>
+      </div>
+
+      <div class="directory-summary-cards">
+        <div class="summary-stat-box box-x">
+          <div class="box-count">11</div>
+          <div class="box-title">Group-X Students</div>
+          <div class="box-sub">X-1 to X-11 (Sections A & B)</div>
+        </div>
+        <div class="summary-stat-box box-y">
+          <div class="box-count">18</div>
+          <div class="box-title">Group-Y Students</div>
+          <div class="box-sub">Y-1 to Y-18 (Sections A & B)</div>
+        </div>
+        <div class="summary-stat-box box-z">
+          <div class="box-count">40</div>
+          <div class="box-title">Group-Z Students</div>
+          <div class="box-sub">Z-1 to Z-40 (Sections A & B)</div>
+        </div>
+        <div class="summary-stat-box box-total">
+          <div class="box-count">69</div>
+          <div class="box-title">Total Enrollment</div>
+          <div class="box-sub">All groups combined</div>
+        </div>
+      </div>
+
+      <div class="card table-card" style="margin-top: 1.5rem;">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Roll No</th>
+                <th>Student ID</th>
+                <th>Student Name</th>
+                <th>Group</th>
+                <th>Section</th>
+                <th>Registered Phone Number</th>
+                <th>Quick Action</th>
+              </tr>
+            </thead>
+            <tbody id="directory-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODAL: EDIT MARK ================= -->
+  <div id="edit-mark-modal" class="modal-overlay hidden">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="edit-modal-title">Edit Student Mark</h3>
+        <button id="close-modal-btn" class="modal-close-btn">&times;</button>
+      </div>
+      <form id="edit-mark-form">
+        <input type="hidden" id="edit-mark-id" />
+
+        <div class="modal-info-bar">
+          <div class="modal-info-item">
+            <span class="info-label">Student:</span>
+            <strong id="edit-student-name">X-1</strong>
+          </div>
+          <div class="modal-info-item">
+            <span class="info-label">Test:</span>
+            <strong id="edit-test-name">Test-1</strong>
+          </div>
+          <div class="modal-info-item">
+            <span class="info-label">Subject:</span>
+            <strong id="edit-subject-name">Maths</strong>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Exam Conducted For (Max Marks):</label>
+          <div class="pill-selector">
+            <label class="pill-radio">
+              <input type="radio" name="editMaxMarks" value="20">
+              <span class="pill-label-btn">20</span>
+            </label>
+            <label class="pill-radio">
+              <input type="radio" name="editMaxMarks" value="25">
+              <span class="pill-label-btn">25</span>
+            </label>
+            <label class="pill-radio">
+              <input type="radio" name="editMaxMarks" value="50">
+              <span class="pill-label-btn">50</span>
+            </label>
+            <label class="pill-radio">
+              <input type="radio" name="editMaxMarks" value="100">
+              <span class="pill-label-btn">100</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-raw-marks">Marks Scored:</label>
+          <input 
+            type="number" 
+            id="edit-raw-marks" 
+            class="form-control" 
+            step="0.5" 
+            min="0" 
+            required 
+          />
+        </div>
+
+        <div class="calculation-card" style="margin-top: 1rem;">
+          <div class="calc-header">
+            <span class="calc-icon">⚡</span>
+            <span class="calc-title">Calculated Counting Marks</span>
+          </div>
+          <div class="calc-result" style="margin-top: 0.5rem;">
+            <span class="calc-big-score" id="edit-scaled-preview">0</span>
+            <span class="calc-score-suffix">/ 100 Marks</span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancel-modal-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Marks</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Main JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
